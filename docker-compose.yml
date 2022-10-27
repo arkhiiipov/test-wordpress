@@ -1,0 +1,53 @@
+services:
+
+  db:
+    image: percona/percona-server
+    restart: always
+    env_file: .env
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - srv_apps
+
+
+  php:
+    image: arkhipovvv/7.4.30-fpm-mysql
+    container_name: php
+    restart: always
+    env_file: .env
+    volumes:
+      - ./wordpress:/var/www/html
+    networks:
+      - srv_apps
+
+  nginx:
+    image: nginx:1.21.4
+    restart: always
+    container_name: nginx
+    volumes:
+      - ./wordpress:/var/www/html
+      - ./wp.conf:/etc/nginx/conf.d/wp.conf
+      - certbot:/etc/letsencrypt
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - srv_apps
+
+#  certbot:
+#    image: certbot/certbot:v1.22.0
+#    container_name: certbot
+#    volumes:
+#      - certbot:/etc/letsencrypt
+#      - ./wordpress:/var/www/html
+#    command: certonly -v --keep --email test@gmail.com  --agree-tos --no-eff-email --duplicate --expand --webroot -w=/var/www/html -d
+
+volumes:
+  wordpress:
+  db:
+  certbot:
+
+networks:
+  srv_apps:
+    external: true
